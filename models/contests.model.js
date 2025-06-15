@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 const contestSchema = new mongoose.Schema({
   codeHandle: String,
   time: Date,
