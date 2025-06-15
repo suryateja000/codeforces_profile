@@ -1,5 +1,7 @@
+const mongoose = require('mongoose')
+
 const contestSchema = new mongoose.Schema({
-  codeHandle: String,
+  codeHandle: {type:String,required:true,unique:true},
   time: Date,
   rating: Number,
   rank: Number,
