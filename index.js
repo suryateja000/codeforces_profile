@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { connectDB, mongoose } = require('./config/db'); 
+const { connectDB, mongoose } = require('./config/connectDb'); 
 
 app.use(cors({
   origin: '*',
