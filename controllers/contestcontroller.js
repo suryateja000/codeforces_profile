@@ -3,7 +3,7 @@ const { CodeforcesAPI, CodeforcesDataCollector } = require('../services/codeforc
 const api = new CodeforcesAPI();
 const collector = new CodeforcesDataCollector();
 
-const getUserContests = async (req, res) => {
+const ContestHistory = async (req, res) => {
     try {
         const rawHandle = req.params.handle;
         const handle = rawHandle.startsWith(':') ? rawHandle.substring(1) : rawHandle;
@@ -33,7 +33,7 @@ const getUserContests = async (req, res) => {
     }
 };
 
-const getUserRating = async (req, res) => {
+const RatingHistory = async (req, res) => {
     try {
         const { handle } = req.params;
         
@@ -59,7 +59,7 @@ const getUserRating = async (req, res) => {
     }
 };
 
-const getContestRatingGraph = async (req, res) => {
+const ContestRatingGraph = async (req, res) => {
     try {
         const { handle } = req.params;
         const days = parseInt(req.query.days) || 365;
@@ -84,7 +84,7 @@ const getContestRatingGraph = async (req, res) => {
     }
 };
 
-const getContestDetails = async (req, res) => {
+const ContestDetails = async (req, res) => {
     try {
         const { handle, contestId } = req.params;
 
@@ -126,8 +126,8 @@ const getContestDetails = async (req, res) => {
 };
 
 module.exports = {
-    getUserContests,
-    getUserRating,
-    getContestRatingGraph,
-    getContestDetails
+    ContestHistory,
+    RatingHistory,
+    ContestRatingGraph,
+    ContestDetails
 };
