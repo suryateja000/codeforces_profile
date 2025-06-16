@@ -1,7 +1,9 @@
 const { CodeforcesAPI, CodeforcesDataCollector } = require('../services/codeforcesService');
-
+const {filterContestsByDays,processContestHistory,createSubmissionHeatMap,filterSubmissionsByDays,processProblemSolvingData,createRatingGraph,getContestProblemsUnsolved} = require('../utils/codeforceutils')
 const api = new CodeforcesAPI();
 const collector = new CodeforcesDataCollector();
+const {combineContestDataByName} = require('../utils/cronutils')
+const Contest = require('../models/contests.model')
 
 const ContestHistory = async (req, res) => {
     try {
@@ -19,6 +21,40 @@ const ContestHistory = async (req, res) => {
         const userData = await collector.collectAllUserData(handle.trim());
         const contestHistory = await processContestHistory(userData, days);
 
+        const temp= combineContestDataByName(contestHistory) 
+        
+        function saveAllContests(temp, codeHandle) {  
+
+  const savePromises = temp.map(contest => {
+    const newContest = new Contest({
+      codeHandle,
+      contestId: contest.contestId,
+      contestName: contest.contestName,
+      rank: contest.rank,
+      oldRating: contest.oldRating,
+      newRating: contest.newRating,
+      ratingChange: contest.ratingChange,
+      date: contest.date,
+      Date: contest.Date,
+      Rating: contest.Rating,
+      problemsUnsolved: contest.problemsUnsolved || 0
+    });
+
+    return newContest.save();
+  });
+
+  
+  Promise.allSettled(savePromises)
+    .then(results => {
+      console.log('All contests processed:', results.length);
+      const errors = results.filter(r => r.status === 'rejected');
+      if (errors.length) {
+        console.error('Some contests failed to save:', errors);
+      }
+    });
+}
+        saveAllContests(temp,handle)
+
         res.json({
             success: true,
             data: contestHistory,
@@ -26,6 +62,7 @@ const ContestHistory = async (req, res) => {
         });
 
     } catch (error) {
+        console.log(error)
         res.status(500).json({
             success: false,
             error: error.message
@@ -33,101 +70,34 @@ const ContestHistory = async (req, res) => {
     }
 };
 
-const RatingHistory = async (req, res) => {
-    try {
-        const { handle } = req.params;
-        
-        const ratingData = await api.getUserRating(handle);
-        
-        if (ratingData.status !== 'OK') {
-            return res.status(404).json({
-                success: false,
-                error: 'Rating data not found'
-            });
-        }
 
-        res.json({
-            success: true,
-            data: ratingData.result
-        });
+const contestData= async (req,res)=>{
 
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-};
+   try {
+    
+    const {handle} = req.params 
+   const days = parseInt(req.query.days)
 
-const ContestRatingGraph = async (req, res) => {
-    try {
-        const { handle } = req.params;
-        const days = parseInt(req.query.days) || 365;
 
-        const userData = await collector.collectAllUserData(handle);
-        const filteredContests = filterContestsByDays(userData.ratingHistory || [], days);
-        const ratingGraph = createRatingGraph(filteredContests);
+       if(!handle || !days){
+           return res.status(400).json({messages:"not found"}) 
+       }
+       const dateThreshold = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+      const contests = await Contest.find({ codeHandle:handle,date: { $gte: dateThreshold } })
 
-        res.json({
-            success: true,
-            data: {
-                ratingGraph,
-                totalContests: filteredContests.length
-            }
-        });
+      if(contests){
+        return res.status(200).json(contests)
+      }
+      return res.status(200).json({message:"no data"})
 
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-};
+}
+catch(e){
+    return res.status(500).json({message:"problem with backend"})
+}
 
-const ContestDetails = async (req, res) => {
-    try {
-        const { handle, contestId } = req.params;
-
-        const userData = await collector.collectAllUserData(handle);
-        const contest = userData.ratingHistory?.find(c => c.contestId == contestId);
-        
-        if (!contest) {
-            return res.status(404).json({
-                success: false,
-                error: 'Contest not found for this user'
-            });
-        }
-
-        const problemsUnsolved = await getContestProblemsUnsolved(
-            handle, 
-            contestId, 
-            userData.submissions || []
-        );
-
-        res.json({
-            success: true,
-            data: {
-                contestId: contest.contestId,
-                contestName: contest.contestName,
-                rank: contest.rank,
-                oldRating: contest.oldRating,
-                newRating: contest.newRating,
-                ratingChange: contest.newRating - contest.oldRating,
-                problemsUnsolved
-            }
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-};
+}
 
 module.exports = {
     ContestHistory,
-    RatingHistory,
-    ContestRatingGraph,
-    ContestDetails
+   contestData
 };
