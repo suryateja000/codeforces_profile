@@ -8,6 +8,23 @@ StudentRouter.post('/addStudent',addStudent)
 
 StudentRouter.put('/updateHandle',updateCodeHandle)
 
+
+StudentRouter.get('/getStudents',async (req,res)=>{
+     try {
+         const data = await Student.find({})
+
+         res.status(200).json(data)}
+         catch(e){
+          console.log(e)
+         }
+})
+
+
+
+
+
+
+
 StudentRouter.post('/mailupdate',async (req,res)=>{
        
        try   {
@@ -33,4 +50,32 @@ StudentRouter.post('/mailupdate',async (req,res)=>{
             return res.status(400).json({message:"error ok error go away sometime and take rest"})
         }
 })
+
+
+
+StudentRouter.put('/updateStudent',async (req,res)=>{
+         const {name,email,phone,oldemail} = req.body 
+
+         if(!name||!email||!phone){
+              return res.status(400).json({message:"no valid json"})
+         }
+         else{
+                     const stud = await Student.findOneAndUpdate({email:oldemail},{$set:{name:name,email:email,phone:phone,}})
+                     return res.status(200).json({message:"sucessfull"})
+         }
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 module.exports= StudentRouter

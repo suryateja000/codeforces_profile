@@ -9,7 +9,7 @@ const {updateProblems,updateContests} = require('./utils/cronutils')
 app=express()
 app.use(cors({
   origin: '*',
-  methods: ['POST', 'GET'],
+  methods: ['POST', 'GET','PUT'],
   allowedHeaders: ['Content-Type','Authorization'],
   credentials: true
 }));

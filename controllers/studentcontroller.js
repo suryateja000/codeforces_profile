@@ -59,7 +59,7 @@ const updateCodeHandle = async (req,res)=>{
 
        const valid = Student.findOne({codeHandle:codeHandle,email:email}) 
        
-
+console.log(newhandle)
 
        if(!valid){
         return res.status(401).json({message:"codeHandle already present"})
@@ -76,7 +76,7 @@ const updateCodeHandle = async (req,res)=>{
   const highestRatingEntry = await Contest.findOne({ codeHandle:newhandle })
   .sort({ newRating: -1 })
   .limit(1);
-  
+  console.log(latestRatingEntry,highestRatingEntry)
        const stud = await Student.findOneAndUpdate({email:email,codeHandle:codeHandle},{$set:{codeHandle:newhandle,currRating:latestRatingEntry.newRating,
             maxRating: highestRatingEntry.newRating}},{updated:true}) 
 
@@ -87,5 +87,10 @@ const updateCodeHandle = async (req,res)=>{
        }
 
 }
+
+
+
+
+
 
 module.exports = {addStudent,updateCodeHandle}
