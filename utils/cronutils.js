@@ -131,14 +131,14 @@ const ProblemsCron = async (handle,days) => {
             ratingDistribution: problemSolvingData.ratingDistribution || [],
             submissionHeatMap: problemSolvingData.submissionHeatMap || {}
         };
-console.log(problemPayload)
+// console.log(problemPayload)
         if (!existing) {
             const newStats = new Problem(problemPayload);
             await newStats.save();
-            console.log(`New stats saved for ${handle}`);
+            // console.log(`New stats saved for ${handle}`);
         } else {
             await Problem.updateOne({ handle:handle}, problemPayload);
-            console.log(`Stats updated for ${handle}`);
+            // console.log(`Stats updated for ${handle}`);
         }
 
         return {
@@ -178,7 +178,7 @@ const SubmissionsByDays = (submissions, days) => {
 
 
 
-async function sendMail({ to }) {
+async function sendMail( to ) {
   
   const transporter = nodemailer.createTransport({
      host: 'smtp.gmail.com',
@@ -233,10 +233,11 @@ const updateProblems = async ()=>{
     
     for(i=0;i<students.length;i++){
        const handle=students[i].codeHandle 
-       const data = await ProblemsCron(handle,7) 
-
-       if(data.averageProblemsPerDay==0 && students[i].mail){ 
-           sendMail(students.email) 
+       const data = await ProblemsCron(handle,1) 
+       console.log("avg",handle,data.data.averageProblemsPerDay)
+       console.log(students[i])
+       if(data.data.averageProblemsPerDay==0 && students[i].mail){ 
+           sendMail(students[i].email) 
            students[i].mailsent = new Date()
           await students[i].save() ;
            
